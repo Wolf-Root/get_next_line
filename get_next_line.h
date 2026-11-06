@@ -23,7 +23,7 @@
 
 # define FD_MAX 1024
 
-ssize_t is_has_newline(char *saved_text);
+ssize_t	is_has_newline(char *saved_text);
 char	*ft_strjoin(char *saved_text, char *buffer, size_t *capacity);
 char	*ft_read(int fd, char *saved_text, size_t *capacity);
 char	*ft_free_all(char *buffer, char **saved_text,
