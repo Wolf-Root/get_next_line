@@ -28,48 +28,28 @@ ssize_t	is_has_newline(char *saved_text)
 	return (-1);
 }
 
-char	*ft_strjoin(char *saved_text, char *buffer, size_t *capacity)
+char	*ft_extract_line(char *saved_text)
 {
-	char	*new_text;
-	size_t	new_capacity;
-	size_t	required;
-	size_t	saved_length;
-	size_t	buffer_length;
 	size_t	i;
+	size_t	line_length;
+	ssize_t	newline_index;
+	char	*line;
 
-	saved_length = ft_strlen(saved_text);
-	buffer_length = ft_strlen(buffer);
-	if (saved_length == SIZE_MAX || buffer_length > SIZE_MAX - saved_length - 1)
+	line_length = ft_strlen(saved_text);
+	newline_index = is_has_newline(saved_text);
+	if (newline_index >= 0)
+		line_length = newline_index + 1;
+	line = (char *) malloc(sizeof(char) * (line_length + 1));
+	if (!line)
 		return (NULL);
-	required = saved_length + buffer_length + 1;
-	if (required > *capacity)
-	{
-		new_capacity = *capacity;
-		if (new_capacity == 0)
-			new_capacity = 16;
-		while (new_capacity < required)
-		{
-			if (new_capacity > SIZE_MAX / 2)
-			{
-				new_capacity = required;
-				break ;
-			}
-			new_capacity *= 2;
-		}
-		new_text = (char *) realloc(saved_text, new_capacity);
-		if (!new_text)
-			return (NULL);
-		saved_text = new_text;
-		*capacity = new_capacity;
-	}
 	i = 0;
-	while (i < buffer_length)
+	while (i < line_length)
 	{
-		saved_text[saved_length + i] = buffer[i];
+		line[i] = saved_text[i];
 		i++;
 	}
-	saved_text[saved_length + i] = '\0';
-	return (saved_text);
+	line[i] = '\0';
+	return (line);
 }
 
 char	*ft_free_all(char *buffer, char **saved_text,
