@@ -47,13 +47,12 @@ char	*ft_strjoin(char *saved_text, char *buffer, size_t *capacity)
 		new_capacity = *capacity;
 		if (new_capacity == 0)
 			new_capacity = 16;
-	
 		while (new_capacity < required)
 		{
 			if (new_capacity > SIZE_MAX / 2)
 			{
 				new_capacity = required;
-				break;
+				break ;
 			}
 			new_capacity *= 2;
 		}
