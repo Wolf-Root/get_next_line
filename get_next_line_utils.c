@@ -33,7 +33,7 @@ char	*ft_extract_line(char *saved_text)
 
 	line_length = ft_strlen(saved_text);
 	newline_index = is_has_newline(saved_text);
-	if(newline_index >= 0)
+	if (newline_index >= 0)
 		line_length = newline_index + 1;
 	line = (char *) malloc(sizeof(char) * (line_length + 1));
 	if (!line)
