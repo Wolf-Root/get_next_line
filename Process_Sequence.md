@@ -1,168 +1,341 @@
-# Some Concepts && Process Sequence
+# Some Concepts & Process Sequence
 
-## Some Concepts
+## 1. Some Concepts
 
 ### Memory Blocks
 
-1- `Text` (Code segment):
-    - This is where the compiled machine code of you program live.
-    - The actual binary instructions executed by the CPU like `Assembly` instructions such as `mov`, `add`, `call`.
+**1. Text (Code Segment)**
+- Stores the compiled machine code of the program.
+- Contains the binary instructions executed by the CPU, such as `mov`, `add`, and `call` in assembly.
 
-2- `data` (initialized data segment):
-    - This segment stores `Global` and `Static` Variables that are explicity initialized with a non-zero value at compile.
+**2. Data (Initialized Data Segment)**
+- Stores global and static variables explicitly initialized with non-zero values.
 
-3- `base` BSS: Black Started by Symbol (uninitialized segment):
-    - This segment stores `Global` and `Static` Variables that are not initialized ore explicity initialized to `zero` or `NULL`.
+**3. BSS (Uninitialized Data Segment)**
+- Stores global and static variables that are uninitialized or explicitly initialized to `0` or `NULL`.
+- These variables are automatically initialized to zero.
 
-4- `Heap`:
-    - The region used for `dynamic memory allocation` when you use `malloc` or `calloc`, `realloc`.
-    - Unlike `Stack` variables, `heap` memory doesn't clean itsulf up.
-    - Whatever you allocat stays there until you explicity call `free()` or the program exits.
-    - `Lifetme` lasts as long as you want it to, crossing functions boundaries freely.
-    - `Direction` in most architectures, the keep grows `upward` (toward higher memory addresses) as you request more memory.
+**4. Heap**
+- Used for dynamic memory allocation with `malloc()`, `calloc()`, and `realloc()`.
+- Unlike stack memory, allocated memory is not automatically released when a function returns.
+- Its lifetime continues until you explicitly call `free()` or the program terminates.
+- Memory can be shared between functions by passing pointers.
+- Its growth direction is implementation-dependent.
 
-5- `Stack`:
-    - The region used for `automatic memory` this is where normal local variables, functions arguments, and return addresses live.
-    - `LIFO` Stracture it operates on a Last-In, First-Out basis, When you enter a function returns, the are automatically `popped` or wiped clean.
-    - You naver call `free()` on a `Stack` variable; the `compiler` and `CPU` handlle it's creation and destruction automatically.
-    - `Direction` The `Stack` typically grows `downward` (toward lower memory addresses) in `RAM`
+**5. Stack**
+- Used for automatic storage, including local variables, function parameters, and return information.
+- Usually operates on a Last-In, First-Out (LIFO) basis.
+- Automatic local variables have a lifetime associated with their block or function execution.
+- You don't call `free()` on stack variables.
+- The stack typically grows downward on many architectures, but this is implementation-dependent.
 
 ### NULL
 
-NULL:
-    `NULL` is a special value that represents a "null pointer" - a pointer that does not point to anything.
+`NULL` is a special value representing a null pointer.
+
+It indicates that a pointer does not point to a valid object.
+
+Example:
+
+```c
+char *text = NULL;
+```
+
+Important:
+- `free(NULL)` is safe.
+- Dereferencing `NULL` is undefined behavior.
 
 ### File Descriptor (FD)
 
-FD:
-    - The `file descriptor` (FD) is a none-nigativ integer assigned by the kernel to uniquely identify an open I/O resurces.
-    - Is start from 0 to `OPEN_MAX` is 1024 by defaults but is can be increased.
-    - `FD 0` is `stdiin` Standard input stream, like `keyboard`, it reads from `stdin` through fd 0 and saves it a file named `/dev/tty`.
-    - `FD 1` is `stdout` Standard output stream, like `Terminal` window, it's from the file named `/dev/tty` and written to `stdout` in screen through FD 1.
-    - `FD 2` is `stderr` Standard error stream, we see any error to the video screen, it is also from that file write to stderr in screen through fd 2.
+A **File Descriptor (FD)** is a non-negative integer used by a process to identify an open I/O resource through the kernel.
+
+- The kernel assigns the lowest available FD when opening a resource.
+- FD numbers commonly start at `0`.
+- The maximum number of open descriptors depends on operating-system resource limits. It is not always `1024`.
+
+Standard file descriptors:
+
+| FD | Name | Purpose |
+|---|---|---|
+| `0` | `stdin` | Standard input |
+| `1` | `stdout` | Standard output |
+| `2` | `stderr` | Standard error |
+| `3+` | Other resources | Commonly assigned to subsequently opened resources |
+
+**FD Table:**
+- The kernel maintains a file descriptor table for each process.
+- Each entry refers to an open resource through a kernel-managed open-file description.
+- When `read(fd, ...)` is called, the kernel uses the FD to identify which resource to read from.
+
+Example:
+
+```c
+int fd = open("file.txt", O_RDONLY);
+```
+
+If `open()` returns `3`, FD `3` identifies the opened file.
+
+**Important:** An FD is an identifier, not the file itself.
 
 ### /dev/tty
 
-`/dev/tty` is a special device file in `UNIX` that represents the `controlling terminal` of the current process `Active terminal session`.
+`/dev/tty` is a special device file in Unix-like systems that represents the controlling terminal of the current process.
+
+It is not necessarily the destination of every `stdin` or `stdout` operation.
+
+For example, input can come from a keyboard, a file, or a pipe.
 
 ### Static Variables
 
-`Static` Variables: is a variable Has lifetime for `program` running time unlike normal variable which has only lifetime for its scope it's destroyed when the function finishes.
-`Static` Variables: it's stored in `data` block memory unlike normal variable which is stored in the `stack`.
-`Static` Variables: it is initialized to `NULL`, unlike normal variable that is initialized to a `garbage` value.
-`Static` Variables: it `keeps` its value for every call, unlike normal variable that is destroyed and re-declared for every call.
+A `static` variable has **static storage duration**, meaning it exists for the entire lifetime of the program.
 
-## Process Sequence
+- Initialized only once.
+- Retains its value between function calls.
+- If not explicitly initialized, it is initialized to zero (`NULL` for pointers).
+- Its scope depends on where it is declared.
 
-### 1. `get_next_line()` function
+Examples:
 
-1. Receive the `fd` argument (file descriptor).
-2. Declare the variables:
-   - `static char *saved_text`: stores the text read from the file that has not yet been returned. Because it is `static`, it keeps its value between function calls.
-   - `char *line`: stores the line that will be returned.
-3. Check the arguments:
-   - If `fd < 0 && fd >= FD_MAX`, return `NULL`.
-   - If `BUFFER_SIZE <= 0`, return `NULL`.
-4. Call `ft_read(fd, saved_text)` and assign its return value to `saved_text`.
+**Inside a function:**
 
-### 2. `ft_read()` function
+```c
+void counter(void)
+{
+    static int count = 0;
+    count++;
+}
+```
 
-**Purpose:** Read from the file until a newline is found or the end of the file is reached.
+The variable retains its value between calls but can only be accessed inside that function.
 
-#### 2.1. Declare variables
+**Outside a function:**
 
-- `char *tmp`: temporarily stores the result of `ft_append_text()`.
-- `char *buffer`: stores the text read from the file.
-- `ssize_t bytes_read`: stores the number of bytes returned by `read()`.
+```c
+static int count = 0;
+```
 
-`ssize_t` is a signed integer type. Unlike `size_t`, it can store negative values.
+The variable has file scope and internal linkage, meaning it can only be accessed within that source file.
+
+Static variables are commonly stored in the data or BSS segment, depending on their initialization.
+
+---
+
+## 2. get_next_line() Process Sequence
+
+### 2.1. get_next_line() Function
+
+**Purpose:** Read and return one line at a time from a file descriptor while preserving leftover text for the next call.
+
+Declare the variables:
+
+```c
+static char *saved_text;
+static size_t capacity;
+char *line;
+```
+
+- `saved_text`: Stores the text read from the file that has not yet been returned.
+- `capacity`: Stores the allocated memory size of `saved_text`.
+- `line`: Stores the extracted line that will be returned.
+
+Both `saved_text` and `capacity` are static because they must retain their values between calls.
+
+**Argument validation:**
+
+- If `fd < 0`, return `NULL`.
+- If `BUFFER_SIZE <= 0`, return `NULL`.
+- If an FD is invalid, `read()` will return `-1`.
+
+If you use an explicit `FD_MAX`, the correct range condition is:
+
+```c
+if (fd < 0 || fd >= FD_MAX)
+    return (NULL);
+```
+
+However, `FD_MAX` is not a universal Unix limit.
+
+**Process:**
+
+1. Call `ft_read(fd, saved_text, &capacity)` and update `saved_text` with its returned pointer.
+2. Check whether `saved_text` is `NULL` or empty.
+3. Call `ft_extract_line(saved_text)` to extract the first line.
+4. Check whether line allocation succeeded.
+5. Call `ft_update_saved_text(&saved_text, &capacity)` to keep only the leftover text.
+6. If updating fails, free the allocated memory and return `NULL`.
+7. Return `line`.
+
+---
+
+### 2.2. ft_read() Function
+
+**Purpose:** Read from the file until a newline is found in the newly read buffer or EOF is reached.
+
+#### 2.2.1. Declare variables
+
+- `char *buffer`: Temporarily stores the newly read text.
+- `ssize_t bytes_read`: Stores the number of bytes returned by `read()`.
+- `char *tmp`: Temporarily stores the result of `ft_strjoin()`.
+
+`ssize_t` is a signed integer type. Unlike `size_t`, it can represent negative values.
 
 `bytes_read` can contain:
 
-- A positive number: the number of bytes successfully read.
-- `0`: end of file (EOF).
-- `-1`: an error occurred.
+- Positive number: Number of bytes successfully read.
+- `0`: EOF (End Of File).
+- `-1`: An error occurred.
 
-#### 2.2. Allocate memory for `buffer`
+#### 2.2.2. Allocate memory for buffer
+
+```c
+buffer = malloc(BUFFER_SIZE + 1);
+```
 
 Allocate `BUFFER_SIZE + 1` bytes:
 
-- `BUFFER_SIZE` bytes for the text.
+- `BUFFER_SIZE` bytes for the data.
 - `1` extra byte for the null terminator (`'\0'`).
 
-`BUFFER_SIZE` is the maximum number of bytes requested in each `read()` call.
-
-#### 2.3. Check the allocation
+#### 2.2.3. Check the allocation
 
 If `malloc()` fails:
 
 - Free `saved_text`.
+- Reset `saved_text` to `NULL`.
+- Reset `capacity` to `0`.
 - Return `NULL`.
 
-#### 2.4. Initialize `bytes_read`
-
-Set `bytes_read = 1`.
-
-This makes the loop run at least once before the first call to `read()`.
-
-If we initialized it to `0`, the condition `bytes_read != 0` would be false, and the loop would never run.
-
-#### 2.5. Read loop
+#### 2.2.4. Initialize bytes_read
 
 ```c
-while (!is_has_newline(saved_text) && bytes_read != 0)
+bytes_read = 1;
 ```
 
-The loop continues while:
+This allows the reading loop to execute at least once.
 
-- `saved_text` does not contain a newline.
-- `bytes_read` is not `0` (EOF has not been reached).
+If initialized to `0`, a loop conditioned on `bytes_read != 0` would never execute.
+
+#### 2.2.5. Read loop
+
+The new approach is to avoid repeatedly scanning the entire `saved_text`.
+
+First, check whether `saved_text` already contains a newline. This is important because leftover text can contain another complete line.
+
+If it doesn't contain a newline, start reading.
 
 Inside the loop:
 
-1. Call `read(fd, buffer, BUFFER_SIZE)`.
-   - Read up to `BUFFER_SIZE` bytes from the file.
-   - Store the bytes in `buffer`.
-   - Store the number of bytes read in `bytes_read`.
+**1. Read data**
 
-2. Check for a read error.
+```c
+bytes_read = read(fd, buffer, BUFFER_SIZE);
+```
 
-   If `bytes_read == -1`, call `ft_free_all(buffer, &saved_text)`.
+Read up to `BUFFER_SIZE` bytes from the file.
 
-   `ft_free_all()`:
-   - Frees `buffer`.
-   - Frees `saved_text`.
-   - Sets `saved_text` to `NULL`.
+**2. Check for errors**
 
-3. Add the null terminator:
+```c
+if (bytes_read < 0)
+    return (ft_free_all(buffer, &saved_text, NULL, &capacity));
+```
 
-   ```c
-   buffer[bytes_read] = '\0';
-   ```
+If `read()` returns `-1`, free the allocated memory and reset the saved state.
 
-   This makes the content of `buffer` a valid C string.
+**3. Add the null terminator**
 
-4. Call `ft_append_text(saved_text, buffer)` and assign its return value to `tmp`.
+```c
+buffer[bytes_read] = '\0';
+```
 
-5. Check if `ft_append_text()` failed.
+This makes the newly read data a valid C string.
 
-   If `tmp == NULL`, call `ft_free_all()` to free the allocated memory and return `NULL`.
+Only do this after checking that `bytes_read` is not negative.
 
-6. Update `saved_text`:
+**4. Append the new buffer**
 
-   ```c
-   saved_text = tmp;
-   ```
+```c
+tmp = ft_strjoin(saved_text, buffer, &capacity);
+```
 
-#### 2.6. After the loop
+`ft_strjoin()` appends the new buffer to `saved_text`.
 
-Free `buffer` because we do not need it anymore.
+**5. Check for allocation failure**
 
-Return `saved_text`.
+If `tmp == NULL`, call `ft_free_all()` to clean up and return `NULL`.
+
+**6. Update saved_text**
+
+```c
+saved_text = tmp;
+```
+
+**7. Check only the new buffer for newline**
+
+```c
+if (is_has_newline(buffer) >= 0)
+    break;
+```
+
+If the new buffer contains `\n`, stop reading.
+
+The important point is that you only scan the newly read buffer on each iteration, rather than repeatedly scanning the potentially large `saved_text`.
+
+However, check `saved_text` once before entering the loop so that an existing leftover newline is not missed.
+
+**8. Stop at EOF**
+
+If `bytes_read == 0`, stop reading.
+
+#### 2.2.6. After the loop
+
+- Free `buffer`.
+- Return `saved_text`.
 
 ---
 
-### 3. Example: How `ft_read()` works
+### 2.3. ft_strjoin() Function
+
+**Purpose:** Append the new buffer to `saved_text` using dynamic memory allocation.
+
+Unlike the previous implementation, this version uses `realloc()` and a capacity variable.
+
+Example:
+
+```c
+saved_text = "Hello ";
+buffer = "42\n";
+```
+
+Result:
+
+```c
+saved_text = "Hello 42\n";
+```
+
+**How capacity works:**
+
+- `capacity` represents the number of bytes allocated for `saved_text`.
+- `ft_strjoin()` checks whether the existing capacity is sufficient.
+- If more memory is required, it increases the capacity using `realloc()`.
+- The capacity can grow geometrically (for example, doubling its previous value).
+- This avoids reallocating memory for every small append.
+
+Important:
+
+Always use a temporary pointer when calling `realloc()`:
+
+```c
+tmp = realloc(saved_text, new_capacity);
+if (!tmp)
+    return (NULL);
+```
+
+This prevents losing the original pointer if allocation fails.
+
+---
+
+### 3. Example: How ft_read() Works
 
 Imagine the file contains:
 
@@ -177,17 +350,14 @@ BUFFER_SIZE = 4;
 bytes_read = 1;
 ```
 
-**First loop iteration**
+**First iteration**
+
 Initially:
 
 ```c
 saved_text = NULL;
+capacity = 0;
 ```
-
-The loop condition is true:
-
-- `saved_text` has no newline.
-- `bytes_read != 0`.
 
 Call:
 
@@ -198,124 +368,60 @@ bytes_read = read(fd, buffer, BUFFER_SIZE);
 Result:
 
 ```c
-bytes_read = 4;
 buffer = "Hell";
-```
-
-Add the null terminator:
-
-```c
-buffer = "Hell\0";
-```
-
-Call:
-
-```c
-tmp = ft_append_text(saved_text, buffer);
-```
-
-Inside `ft_append_text()`:
-
-- `ft_strlen(saved_text)` returns `0` because `saved_text` is `NULL`.
-- `ft_strlen(buffer)` returns `4`.
-- Allocate `4 + 0 + 1 = 5` bytes for `new_text`.
-- Copy the contents of `saved_text` (nothing).
-- Copy `"Hell"` from `buffer` into `new_text`.
-- Add `'\0'` at the end.
-- Free the old `saved_text` (which is `NULL`).
-- Return `new_text`.
-
-Result:
-
-```c
-tmp = "Hell\0";
-saved_text = tmp;
-```
-
-**Second loop iteration**
-Check the condition again:
-
-```c
-!is_has_newline(saved_text) && bytes_read != 0
-```
-
-- `saved_text` is `"Hell"`, so it has no newline.
-- `bytes_read` is `4`, so it is not `0`.
-
-The loop continues.
-
-Call `read()` again:
-
-```c
-bytes_read = read(fd, buffer, BUFFER_SIZE);
-```
-
-Result:
-
-```c
 bytes_read = 4;
+```
+
+Append the buffer:
+
+```c
+saved_text = "Hell";
+```
+
+No newline exists in the new buffer, so continue.
+
+**Second iteration**
+
+Read again:
+
+```c
 buffer = "o\nWo";
+bytes_read = 4;
 ```
 
-Add the null terminator:
+Append:
 
 ```c
-buffer = "o\nWo\0";
+saved_text = "Hello\nWo";
 ```
 
-Call:
+Check:
 
 ```c
-tmp = ft_append_text(saved_text, buffer);
+is_has_newline(buffer);
 ```
 
-Inside `ft_append_text()`:
-
-- `saved_text` is `"Hell"`.
-- `buffer` is `"o\nWo"`.
-- Allocate enough memory for both strings plus `'\0'`.
-- Copy `"Hell"` and then `"o\nWo"`.
-- Add the null terminator.
-- Free the old `saved_text`.
-- Return the new string.
-
-Result:
-
-```c
-tmp = "Hello\nWo\0";
-saved_text = tmp;
-```
-
-**Check the loop condition again**
-Now `saved_text` contains `'\n'`.
-
-Therefore:
-
-```c
-!is_has_newline(saved_text)
-```
-
-is false, and the loop stops.
+The new buffer contains `\n`, so stop reading.
 
 Free `buffer` and return:
 
 ```c
-saved_text = "Hello\nWo\0";
+saved_text = "Hello\nWo";
 ```
 
-**Important:** Even though `BUFFER_SIZE` is `4`, we have read more than 4 bytes in total. Each `read()` call requests up to 4 bytes, and the loop keeps reading until it finds a newline or reaches EOF.
+**Important:** Even though `BUFFER_SIZE` is `4`, the total amount read is `8` bytes. `BUFFER_SIZE` is the maximum number of bytes requested per `read()` call, not the total amount read.
 
 ---
 
-### 4. Back to `get_next_line()`
+## 4. Back to get_next_line()
 
 After `ft_read()` returns:
 
 ```c
-saved_text = "Hello\nWo\0";
+saved_text = "Hello\nWo";
 ```
 
-Check whether `saved_text` is `NULL` or empty:
+Check:
 
 ```c
 if (!saved_text || *saved_text == '\0')
@@ -325,11 +431,16 @@ If either condition is true:
 
 - Free `saved_text`.
 - Set it to `NULL`.
+- Reset `capacity` to `0`.
 - Return `NULL`.
 
 Otherwise, continue.
 
-### 5. `ft_extract_line()` function
+---
+
+## 5. ft_extract_line() Function
+
+**Purpose:** Extract the first line from `saved_text`, including the newline if one exists.
 
 Call:
 
@@ -337,29 +448,50 @@ Call:
 line = ft_extract_line(saved_text);
 ```
 
-**Purpose:** Extract the first line from `saved_text`.
+Inside the function:
 
-For this example:
+**1. Calculate the line length**
 
 ```c
-saved_text = "Hello\nWo\0";
+line_length = ft_strlen(saved_text);
+newline_index = is_has_newline(saved_text);
+
+if (newline_index >= 0)
+    line_length = newline_index + 1;
 ```
 
-Inside `ft_extract_line()`:
+The first `+1` includes the newline character.
 
-1. Call `ft_line_memory_allocate(saved_text)` to allocate enough memory for the line.
-   - If a newline exists, allocate `i + 2` bytes: `i` characters + `'\n'` + `'\0'`.
-   - If no newline exists, allocate `i + 1` bytes: `i` characters + `'\0'`.
+**2. Allocate memory**
 
-2. Loop through `saved_text` and copy characters into `line` until:
-   - A newline is found, or
-   - The string ends.
+```c
+line = malloc(line_length + 1);
+```
 
-3. If a newline is found, copy it into `line` too.
+The second `+1` allocates space for the null terminator.
 
-4. Add the null terminator (`'\0'`) to close the string.
+**3. Copy the characters**
 
-5. Return `line`.
+Copy characters from `saved_text` into `line` until:
+
+- A newline is found, or
+- The string ends.
+
+If a newline is found, include it.
+
+**4. Add the null terminator**
+
+```c
+line[i] = '\0';
+```
+
+**5. Return the line**
+
+Example:
+
+```c
+saved_text = "Hello\nWo";
+```
 
 Result:
 
@@ -367,78 +499,124 @@ Result:
 line = "Hello\n";
 ```
 
-### 6. `ft_update_saved_text()` function
+---
 
-Now we need to remove the returned line from `saved_text`, because we do not want to return it again during the next call.
+## 6. ft_update_saved_text() Function
+
+**Purpose:** Remove the returned line from `saved_text` and preserve the leftover text for the next call.
 
 Call:
 
 ```c
-ft_update_saved_text(&saved_text);
+ft_update_saved_text(&saved_text, &capacity);
 ```
 
-**Why pass `&saved_text`?**
+### Why pass &saved_text?
 
-We pass the address of `saved_text` because the function needs to modify the original pointer in `get_next_line()`.
+Because we need to modify the original pointer inside `get_next_line()`.
 
-Inside `ft_update_saved_text()`:
-
-1. Declare:
-   - `size_t i`: used to find the newline.
-   - `char *new_saved`: stores the remaining text.
-
-2. Start from index `0` and move through `saved_text` until:
-   - A newline is found, or
-   - The string ends.
-
-3. If no newline exists:
-   - Free the entire `saved_text`.
-   - Set `*saved_text = NULL`.
-   - Return `1`.
-
-4. If a newline exists:
-   - Move to the character immediately after it.
-   - If there is no remaining text, free the old string, set `*saved_text = NULL`, and return `1`.
-   - Otherwise, call `ft_subdup()` to copy the remaining text into `new_saved`.
-
-5. Check if `ft_subdup()` failed.
-   - If it returns `NULL`, return `0` without freeing the original `saved_text`.
-
-6. Free the old `saved_text`.
-
-7. Assign the new string to the original pointer:
-
-   ```c
-   *saved_text = new_saved;
-   ```
-
-8. Return `1` to indicate success.
-
-**Example:**
-
-Before updating:
+For example:
 
 ```c
-saved_text = "Hello\nWo";
+char *saved_text = "Hello\nWorld";
 ```
 
-After updating:
+- `saved_text` contains the address of the string.
+- `&saved_text` contains the address of the pointer.
+- `char **saved_text` allows the function to modify the original pointer.
+
+### Inside ft_update_saved_text()
+
+**1. Find the newline**
+
+Move through `saved_text` until:
+
+- A newline is found, or
+- The string ends.
+
+**2. Check whether leftover text exists**
+
+If no newline exists, there is no remaining text after a complete returned line.
+
+If the newline is the last character, there is also no leftover text.
+
+In either case:
 
 ```c
-saved_text = "Wo";
+free(*saved_text);
+*saved_text = NULL;
+*capacity = 0;
 ```
 
-The returned line was `"Hello\n"`, so only `"Wo"` remains.
+**3. Allocate the remaining text**
 
-### 7. Return the line
+If leftover text exists, use `ft_subdup()` to allocate and copy it into `new_saved`.
+
+Example:
+
+```c
+saved_text = "Hello\nWorld";
+```
+
+The remaining text is:
+
+```c
+new_saved = "World";
+```
+
+**4. Check allocation failure**
+
+If `ft_subdup()` returns `NULL`:
+
+- Return failure.
+- Keep the original `saved_text` intact so the caller can clean it up.
+
+**5. Free the old saved_text**
+
+After successfully allocating the remaining text:
+
+```c
+free(*saved_text);
+```
+
+**6. Update the original pointer**
+
+```c
+*saved_text = new_saved;
+```
+
+**7. Update capacity**
+
+If `ft_subdup()` allocates exactly enough memory for the leftover string:
+
+```c
+*capacity = ft_strlen(*saved_text) + 1;
+```
+
+The `+1` accounts for `'\0'`.
+
+If there is no leftover text:
+
+```c
+*capacity = 0;
+```
+
+**8. Return success**
+
+Return `1` to indicate success.
+
+---
+
+## 7. Return the Line
 
 Back in `get_next_line()`:
 
-If `ft_update_saved_text()` returns `0`:
+If `ft_update_saved_text()` fails:
 
 - Free `line`.
 - Free `saved_text`.
 - Set `saved_text` to `NULL`.
+- Reset `capacity` to `0`.
 - Return `NULL`.
 
 Otherwise:
@@ -453,4 +631,46 @@ The caller receives:
 "Hello\n"
 ```
 
-The remaining text (`"Wo"`) stays in the static `saved_text` variable for the next call to `get_next_line()`.
+And the static variable retains:
+
+```c
+saved_text = "Wo";
+```
+
+On the next call to `get_next_line()`, reading continues using the same FD and the leftover text.
+
+---
+
+## 8. ft_free_all() Function
+
+**Purpose:** Centralize memory cleanup and reset the saved state.
+
+```c
+char *ft_free_all(char *buffer, char **saved_text,
+                  char *line, size_t *capacity)
+{
+    free(buffer);
+    free(*saved_text);
+    free(line);
+    *saved_text = NULL;
+    *capacity = 0;
+    return (NULL);
+}
+```
+
+Important:
+
+- `free(NULL)` is safe.
+- `saved_text` must be a valid pointer to a pointer.
+- `capacity` must be a valid pointer.
+- You can pass `NULL` for `buffer` or `line` if they are not allocated.
+- You cannot pass `NULL` for `saved_text` or `capacity` because the function dereferences them.
+
+Example:
+
+```c
+ft_free_all(NULL, &saved_text, line, &capacity);
+```
+
+This is valid if `saved_text` and `capacity` are valid variables.
+
