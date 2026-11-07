@@ -17,12 +17,15 @@
 # include <unistd.h>
 # include <stdlib.h>
 
+// Defined `BUFFER_SIZE`, and set default value to 42,
 # ifndef BUFFER_SIZE
 #  define BUFFER_SIZE 42
 # endif
 
+// Defined `FD_MAX` and set default value to `1024`.
 # define FD_MAX 1024
 
+// Prototype of functions that exist on `get_next_line.c`
 ssize_t	is_has_newline(char *saved_text);
 char	*ft_extract_line(char *saved_text);
 char	*ft_read(int fd, char *saved_text, size_t *capacity);
@@ -30,6 +33,7 @@ char	*ft_free_all(char *buffer, char **saved_text,
 			char *line, size_t *capacity);
 char	*get_next_line(int fd);
 
+// Prototype of functions that exist on `get_next_line_utils.c`
 size_t	ft_strlen(char *str);
 char	*ft_mem_alloc(char *saved_text, size_t *capacity, size_t required);
 char	*ft_strjoin(char *saved_text, char *buffer, size_t *capacity);
