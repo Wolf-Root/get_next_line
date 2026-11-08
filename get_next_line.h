@@ -25,6 +25,12 @@
 // Defined `FD_MAX` and set default value to `1024`.
 # define FD_MAX 1024
 
+typedef struct s_data
+{
+	char	*saved_text;
+	size_t	capacity;
+}	t_data;
+
 // Prototype of functions that exist on `get_next_line.c`
 ssize_t	is_has_newline(char *saved_text);
 char	*ft_extract_line(char *saved_text);
@@ -37,7 +43,7 @@ char	*get_next_line(int fd);
 size_t	ft_strlen(char *str);
 char	*ft_mem_alloc(char *saved_text, size_t *capacity, size_t required);
 char	*ft_strjoin(char *saved_text, char *buffer, size_t *capacity);
-char	*ft_subdup(char *s, size_t start);
+char	*ft_strdup(char *s, size_t start);
 int		ft_update_saved_text(char **saved_text);
 
 #endif
