@@ -30,35 +30,24 @@ char	*ft_mem_alloc(char *saved_text, size_t *capacity, size_t required)
 	size_t	new_capacity;
 	size_t	i;
 
-	if (required > *capacity)
+	if (required <= *capacity)
+		return (saved_text);
+	new_capacity = required;
+	if (required <= SIZE_MAX / 2)
+		new_capacity = required * 2;
+	new_text = (char *) malloc(sizeof(char) * new_capacity);
+	if (!new_text)
+		return (NULL);
+	i = 0;
+	while (saved_text && saved_text[i])
 	{
-		new_capacity = *capacity;
-		if (new_capacity == 0)
-			new_capacity = 16;
-		while (new_capacity < required)
-		{
-			if (new_capacity > SIZE_MAX / 2)
-			{
-				new_capacity = required;
-				break ;
-			}
-			new_capacity *= 2;
-		}
-		new_text = (char *) malloc(sizeof(char *) * new_capacity);
-		if (!new_text)
-			return (NULL);
-		i = 0;
-		while (saved_text && saved_text[i])
-		{
-			new_text[i] = saved_text[i];
-			i++;
-		}
-		new_text[i] = '\0';
-		free(saved_text);
-		saved_text = new_text;
-		*capacity = new_capacity;
+		new_text[i] = saved_text[i];
+		i++;
 	}
-	return (saved_text);
+	new_text[i] = '\0';
+	free(saved_text);
+	*capacity = new_capacity;
+	return (new_text);
 }
 
 char	*ft_strjoin(char *saved_text, char *buffer, size_t *capacity)
@@ -86,7 +75,7 @@ char	*ft_strjoin(char *saved_text, char *buffer, size_t *capacity)
 	return (saved_text);
 }
 
-char	*ft_subdup(char *s, size_t start)
+char	*ft_strdup(char *s, size_t start)
 {
 	size_t	i;
 	char	*dup;
@@ -123,7 +112,7 @@ int	ft_update_saved_text(char **saved_text)
 		*saved_text = NULL;
 		return (1);
 	}
-	new_saved = ft_subdup(*saved_text, i + 1);
+	new_saved = ft_strdup(*saved_text, i + 1);
 	if (!new_saved)
 		return (0);
 	free(*saved_text);
