@@ -94,25 +94,24 @@ char	*ft_read(int fd, char *saved_text, size_t *capacity)
 
 char	*get_next_line(int fd)
 {
-	static char		*saved_text;
-	static size_t	capacity;
+	static t_data	data;
 	char			*line;
 
 	if (fd < 0 || fd >= FD_MAX || BUFFER_SIZE <= 0)
 		return (NULL);
-	if (!saved_text)
-		capacity = 0;
-	saved_text = ft_read(fd, saved_text, &capacity);
-	if (!saved_text || !*saved_text)
-		return (ft_free_all(NULL, &saved_text, NULL, &capacity));
-	line = ft_extract_line(saved_text);
+	if (!data.saved_text)
+		data.capacity = 0;
+	data.saved_text = ft_read(fd, data.saved_text, &data.capacity);
+	if (!data.saved_text || !*data.saved_text)
+		return (ft_free_all(NULL, &data.saved_text, NULL, &data.capacity));
+	line = ft_extract_line(data.saved_text);
 	if (!line)
 		return (NULL);
-	if (!ft_update_saved_text(&saved_text))
-		return (ft_free_all(NULL, &saved_text, line, &capacity));
-	if (saved_text)
-		capacity = ft_strlen(saved_text) + 1;
+	if (!ft_update_saved_text(&data.saved_text))
+		return (ft_free_all(NULL, &data.saved_text, line, &data.capacity));
+	if (data.saved_text)
+		data.capacity = ft_strlen(data.saved_text) + 1;
 	else
-		capacity = 0;
+		data.capacity = 0;
 	return (line);
 }
