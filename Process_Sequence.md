@@ -550,7 +550,7 @@ free(*saved_text);
 
 **3. Allocate the remaining text**
 
-If leftover text exists, use `ft_subdup()` to allocate and copy it into `new_saved`.
+If leftover text exists, use `ft_strdup()` to allocate and copy it into `new_saved`.
 
 Example:
 
@@ -566,7 +566,7 @@ new_saved = "World";
 
 **4. Check allocation failure**
 
-If `ft_subdup()` returns `NULL`:
+If `ft_strdup()` returns `NULL`:
 
 - Return failure.
 - Keep the original `saved_text` intact so the caller can clean it up.
@@ -587,7 +587,7 @@ free(*saved_text);
 
 **7. Update capacity**
 
-If `ft_subdup()` allocates exactly enough memory for the leftover string:
+If `ft_strdup()` allocates exactly enough memory for the leftover string:
 
 ```c
 *capacity = ft_strlen(*saved_text) + 1;
