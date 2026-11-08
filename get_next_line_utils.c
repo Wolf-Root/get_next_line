@@ -28,6 +28,7 @@ char	*ft_mem_alloc(char *saved_text, size_t *capacity, size_t required)
 {
 	char	*new_text;
 	size_t	new_capacity;
+	size_t	i;
 
 	if (required > *capacity)
 	{
@@ -43,9 +44,17 @@ char	*ft_mem_alloc(char *saved_text, size_t *capacity, size_t required)
 			}
 			new_capacity *= 2;
 		}
-		new_text = (char *) realloc(saved_text, new_capacity);
+		new_text = (char *) malloc(sizeof(char *) * new_capacity);
 		if (!new_text)
 			return (NULL);
+		i = 0;
+		while (saved_text && saved_text[i])
+		{
+			new_text[i] = saved_text[i];
+			i++;
+		}
+		new_text[i] = '\0';
+		free(saved_text);
 		saved_text = new_text;
 		*capacity = new_capacity;
 	}
