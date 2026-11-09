@@ -71,17 +71,32 @@ char *get_next_line(int fd);
 
 The algorithm is based on reading data in chunks and storing unread text between function calls using a static variable.
 
-### 1. Static variable
+### 1. Static variable and data structure
 
-The function uses a static pointer called `saved_text`.
+The implementation uses a static structure to preserve the necessary data between function calls.
 
 ```c
-static char *saved_text;
+typedef struct s_data
+{
+    char    *saved_text;
+    size_t  capacity;
+}   t_data;
 ```
 
-Unlike a regular local variable, a static variable keeps its value between function calls.
+The structure contains two members:
 
-It stores the text that has been read but has not yet been returned as a line.
+- `saved_text`: Stores the text that has been read but has not yet been returned as a line.
+- `capacity`: Tracks the allocated memory size of `saved_text`.
+
+The structure is declared as a single static variable:
+
+```c
+static t_data data;
+```
+
+Unlike regular local variables, static variables retain their values between function calls.
+
+Using a structure allows multiple pieces of persistent data to be managed through one static variable.
 
 ### 2. Reading data
 
@@ -89,19 +104,25 @@ A temporary buffer is allocated with a size of `BUFFER_SIZE + 1`.
 
 The `read()` function reads up to `BUFFER_SIZE` bytes from the file descriptor.
 
-The function continues reading while:
-- No newline character (`\n`) has been found in `saved_text`.
-- The end of the file has not been reached.
+The function continues reading until:
+- A newline character (`\n`) is found.
+- The end of the file is reached.
 
-This ensures that the function reads enough data to extract one complete line.
+Each successful read is null-terminated before being processed.
 
 ### 3. Appending text
 
 Each time new data is read, it is appended to `saved_text`.
 
-A new memory block is allocated to contain both the previously saved text and the newly read data.
+The implementation uses dynamic memory allocation to ensure there is enough space for the existing text and the newly read data.
 
-The old memory block is freed after the new text has been successfully created.
+When the current capacity is insufficient:
+1. A larger memory block is allocated using `malloc()`.
+2. The existing text is copied into the new memory block.
+3. The old memory block is freed.
+4. The capacity is updated.
+
+This approach allows the allocated memory to grow as needed.
 
 ### 4. Extracting a line
 
@@ -135,11 +156,25 @@ Memory is allocated dynamically using `malloc()` and released using `free()`.
 
 The algorithm checks allocation failures and handles reading errors to avoid memory leaks and invalid memory access.
 
-### Why this algorithm?
+## Bonus Part
 
-Using a static variable allows the function to preserve unread data without requiring the caller to manage a buffer.
+The bonus part focuses on managing persistent data while respecting the requirement of using only one static variable.
 
-Reading in chunks instead of one character at a time reduces the number of `read()` calls, while keeping the implementation flexible for different `BUFFER_SIZE` values.
+Instead of declaring separate static variables, the implementation groups the required data inside a structure:
+
+```c
+typedef struct s_data
+{
+    char    *saved_text;
+    size_t  capacity;
+}   t_data;
+
+static t_data data;
+```
+
+This approach keeps the implementation organized while allowing both the saved text and its allocated capacity to persist between calls.
+
+**Multiple file descriptors:** To support multiple file descriptors simultaneously, the saved state must be maintained separately for each descriptor, for example, using a linked list managed through a single static pointer.
 
 ## Project Structure
 
