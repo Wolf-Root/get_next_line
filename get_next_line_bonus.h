@@ -37,7 +37,7 @@ char	*ft_extract_line(char *saved_text);
 char	*ft_free_all(char *buffer, char **saved_text,
 			char *line, size_t *capacity);
 char	*ft_read(int fd, char *saved_text, size_t *capacity);
-char	*get_next_line_BONUS(int fd);
+char	*get_next_line(int fd);
 
 // Prototype of functions that exist on `get_next_line_utils_bonus.c`
 size_t	ft_strlen(char *str);
