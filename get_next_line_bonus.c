@@ -69,7 +69,7 @@ char	*ft_read(int fd, char *saved_text, size_t *capacity)
 	char		*buffer;
 	ssize_t		bytes_read;
 
-	buffer = (char *) malloc(sizeof(char) * (BUFFER_SIZE + 1));
+	buffer = (char *) malloc(sizeof(char) * ((size_t)BUFFER_SIZE + 1));
 	if (!buffer)
 		return (ft_free_all(NULL, &saved_text, NULL, capacity));
 	bytes_read = 1;
