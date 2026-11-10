@@ -13,7 +13,7 @@ int main(void)
     int     line_count;
 
     // Open your test file
-    fd = open("test.txt", O_RDONLY);
+    fd = open("test1.txt", O_RDONLY);
     if (fd == -1)
     {
         printf("Error: Could not open test.txt\n");
